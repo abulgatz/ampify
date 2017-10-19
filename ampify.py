@@ -24,14 +24,25 @@ class Amplifier(object):
     if add_commands:
       self.add_commands_from_dict(commands_dict)
 
-  def add_commands_from_dict(self, commands_dict, group=None):
+  def add_commands_from_dict(self, commands_dict, group=None, rec_level=''):
+    print u'{}****add_commands_from_dict()****'.format(rec_level)
+    print u'{}\tGroup: {}'.format(rec_level, group)
+    print u'{}\tcommand_dict: {}'.format(rec_level, commands_dict)
     for name, cmd in commands_dict.iteritems():
+      print u'{}\t**for name, cmd in commands_dict**'.format(rec_level)
+      print u'{}\t\tName: {}'.format(rec_level, name)
+      print u'{}\t\tCmd: {}'.format(rec_level, cmd)
+      print u'{}\t\tGroup: {}'.format(rec_level, group)
       # If we have to add a group
       if isinstance(cmd, dict):
+        print '\t\tisinstance(cmd, dict)'
+        print u'{}\t\t\tName: {}'.format(rec_level, name)
+        print u'{}\t\t\tCmd: {}'.format(rec_level, cmd)
+        print u'{}\t\t\tGroup: {}'.format(rec_level, group)
         if group:
           # This could be done, just too lazy to work on this for now.
           raise InvalidDataError('No nested groups are allowed.')
-        self.add_commands_from_dict(cmd, group=name)
+        self.add_commands_from_dict(cmd, group=name, rec_level=rec_level + '\t')
         continue
 
       command = Command(name, cmd, self.connector)
@@ -50,9 +61,7 @@ class Amplifier(object):
     groupobj = getattr(self, group_name, None)
     if groupobj:
       if not isinstance(groupobj, CommandGroup):
-        raise InvalidDataError(
-          '%s is already existing and not a CommandGroup but a %s' % (
-            group_name, type(groupobj)))
+        raise InvalidDataError('%s is already existing and not a CommandGroup but a %s' % (group_name, type(groupobj)))
       return True
     return False
 
@@ -68,8 +77,7 @@ class Command(object):
     self.connector = connector
 
   def get_subst_count(self, command):
-    return len(re.findall('|'.join(self.__class__.SUPPORTED_SUBSTITUTES),
-      command))
+    return len(re.findall('|'.join(self.__class__.SUPPORTED_SUBSTITUTES), command))
 
   def execute(self):
     self.connector.execute(self.command)
